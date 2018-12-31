@@ -12,7 +12,18 @@ struct Value {
   size_t integer_value;
 };
 
-struct VariableType {
+enum class TypeID {
+  Void,
+  Float,
+  Integer,
+  Function,
+  Struct,
+  Array,
+  Pointer
+};
+
+struct Type {
+  TypeID id;
   size_t bit_width;
   bool is_signed;
   uint8_t pointer_depth;
@@ -60,13 +71,22 @@ struct LoadInstruction : Instruction {
 };
 
 struct AllocaInstruction : Instruction {
+  Type type;
   Variable variable;
-  VariableType type;
-
+  size_t array_size;
   size_t alignment;
+  size_t address_space;
 
   void read_from_line(const std::string& line) {
   }
+
+  bool is_array_alloca() const { return array_size > 1; }
+  size_t get_array_size() const { return array_size; }
+  Type get_alloca_type() const { return type; }
+  size_t get_allignment() const { return alignment; }
+  bool is_static_alloca() const;
+  bool is_used_within_alloca() const;
+  bool is_swift_error() const;
 };
 
 struct StoreInstruction : Instruction {
@@ -83,6 +103,19 @@ struct StoreInstruction : Instruction {
 };
 
 struct SextInstruction : Instruction {
+  Variable lhs_variable;
+  VarVal rhs;
+
+  VariableType lhs_type;
+  VariableType rhs_type;
+
+  size_t alignment;
+
+  void read_from_line(const std::string& line) {
+  }
+};
+
+struct ZextInstruction : Instruction {
   Variable lhs_variable;
   VarVal rhs;
 
